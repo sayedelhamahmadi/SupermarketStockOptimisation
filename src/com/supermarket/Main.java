@@ -2,80 +2,137 @@
 package com.supermarket;
 
 import com.supermarket.model.DistributionCentre;
-import com.supermarket.model.Store;
 import com.supermarket.model.ReplenishmentRequest;
+import com.supermarket.model.Store;
+import com.supermarket.service.AdvancedAllocationService;
 import com.supermarket.service.RequestManager;
 import com.supermarket.service.StockAllocationService;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Main {
 
     public static void main(String[] args) {
 
-        DistributionCentre warehouse =
-                new DistributionCentre("DC001", "London Warehouse", "London");
+        System.out.println("=== BASIC ALLOCATION ===");
+        runBasicAllocation();
 
-        Store store1 = new Store("S001", "Tesco Feltham", "Feltham");
-        Store store2 = new Store("S002", "Tesco Hounslow", "Hounslow");
-        Store store3 = new Store("S003", "Tesco Kingston", "Kingston");
+        System.out.println();
 
-        warehouse.addStock("P001", 500);
+        System.out.println("=== ADVANCED ALLOCATION ===");
+        runAdvancedAllocation();
+    }
 
-        LocalDateTime deadline = LocalDateTime.now().plusDays(1);
+    private static void runBasicAllocation() {
 
-        ReplenishmentRequest request1 = new ReplenishmentRequest(
-                "R001", "S001", "P001", 200, 10, 2, 150, deadline
+        DistributionCentre centre = new DistributionCentre(
+                "DC001", "London Warehouse", "London"
         );
+        centre.addStock("P001", 500);
 
-        ReplenishmentRequest request2 = new ReplenishmentRequest(
-                "R002", "S002", "P001", 300, 5, 5, 250, deadline
-        );
-
-        ReplenishmentRequest request3 = new ReplenishmentRequest(
-                "R003", "S003", "P001", 250, 20, 3, 180, deadline
-        );
+        Map<String, Store> stores = createStores();
+        List<ReplenishmentRequest> requests = createRequests();
 
         RequestManager manager = new RequestManager();
-        StockAllocationService allocationService =
+        StockAllocationService service =
                 new StockAllocationService();
 
-        manager.addRequest(request1);
-        manager.addRequest(request2);
-        manager.addRequest(request3);
-
-        System.out.println("SUPERMARKET STOCK ALLOCATION TEST");
-        System.out.println("Initial warehouse stock: " + warehouse.getStock("P001"));
+        for (ReplenishmentRequest request : requests) {
+            manager.addRequest(request);
+        }
 
         while (manager.hasPendingRequests()) {
+            ReplenishmentRequest request =
+                    manager.getNextRequest();
 
-            ReplenishmentRequest request = manager.getNextRequest();
+            Store store = stores.get(request.getStoreId());
 
-            Store store;
-
-            if (request.getStoreId().equals("S001")) {
-                store = store1;
-            } else if (request.getStoreId().equals("S002")) {
-                store = store2;
-            } else {
-                store = store3;
-            }
-
-            int allocated = allocationService.allocateStock(
-                    warehouse, store, request
+            int allocated = service.allocateStock(
+                    centre, store, request
             );
 
             System.out.println(
                     request.getRequestId()
-                            + " | Priority: " + request.getPriority()
                             + " | Allocated: " + allocated
-                            + " | Remaining request: " + request.getRemainingQuantity()
+                            + " | Remaining: " + request.getRemainingQuantity()
             );
         }
 
-        System.out.println("Final warehouse stock: " + warehouse.getStock("P001"));
-        System.out.println("Feltham stock: " + store1.getStock("P001"));
-        System.out.println("Hounslow stock: " + store2.getStock("P001"));
-        System.out.println("Kingston stock: " + store3.getStock("P001"));
+        System.out.println(
+                "Warehouse remaining: " + centre.getStock("P001")
+        );
+    }
+
+    private static void runAdvancedAllocation() {
+
+        DistributionCentre centre = new DistributionCentre(
+                "DC001", "London Warehouse", "London"
+        );
+        centre.addStock("P001", 500);
+
+        Map<String, Store> stores = createStores();
+        List<ReplenishmentRequest> requests = createRequests();
+
+        AdvancedAllocationService service =
+                new AdvancedAllocationService();
+
+        Map<String, Integer> results =
+                service.allocateStock(centre, stores, requests);
+
+        for (ReplenishmentRequest request : requests) {
+            System.out.println(
+                    request.getRequestId()
+                            + " | Allocated: "
+                            + results.getOrDefault(request.getRequestId(), 0)
+                            + " | Remaining: "
+                            + request.getRemainingQuantity()
+            );
+        }
+
+        System.out.println(
+                "Warehouse remaining: " + centre.getStock("P001")
+        );
+    }
+
+    private static Map<String, Store> createStores() {
+
+        Map<String, Store> stores = new HashMap<>();
+
+        stores.put("S001",
+                new Store("S001", "Tesco Feltham", "Feltham"));
+
+        stores.put("S002",
+                new Store("S002", "Tesco Hounslow", "Hounslow"));
+
+        stores.put("S003",
+                new Store("S003", "Tesco Kingston", "Kingston"));
+
+        return stores;
+    }
+
+    private static List<ReplenishmentRequest> createRequests() {
+
+        List<ReplenishmentRequest> requests = new ArrayList<>();
+
+        LocalDateTime deadline =
+                LocalDateTime.now().plusDays(1);
+
+        requests.add(new ReplenishmentRequest(
+                "R001", "S001", "P001", 200, 10, 2, 150, deadline
+        ));
+
+        requests.add(new ReplenishmentRequest(
+                "R002", "S002", "P001", 300, 5, 5, 250, deadline
+        ));
+
+        requests.add(new ReplenishmentRequest(
+                "R003", "S003", "P001", 250, 20, 3, 180, deadline
+        ));
+
+        return requests;
     }
 }
