@@ -15,20 +15,39 @@ import java.util.Map;
 
 public class AdvancedAllocationService {
 
+    // Original method - keeps existing code compatible
     public Map<String, Integer> allocateStock(
             DistributionCentre centre,
             Map<String, Store> stores,
             List<ReplenishmentRequest> requests) {
 
-        if (centre == null || stores == null || requests == null) {
-            throw new IllegalArgumentException("Inputs cannot be null");
+        return allocateStock(
+                centre,
+                stores,
+                requests,
+                Map.of()
+        );
+    }
+
+    // Advanced allocation with dynamic priorities
+    public Map<String, Integer> allocateStock(
+            DistributionCentre centre,
+            Map<String, Store> stores,
+            List<ReplenishmentRequest> requests,
+            Map<String, Integer> effectivePriorities) {
+
+        if (centre == null || stores == null
+                || requests == null || effectivePriorities == null) {
+            throw new IllegalArgumentException(
+                    "Allocation inputs cannot be null"
+            );
         }
 
         Map<String, Integer> results = new HashMap<>();
         Map<String, List<ReplenishmentRequest>> groups =
                 new HashMap<>();
 
-        // Group all pending requests by product
+        // Validate and group requests by product
         for (ReplenishmentRequest request : requests) {
 
             if (request == null) {
@@ -41,7 +60,9 @@ public class AdvancedAllocationService {
                 continue;
             }
 
-            if (!stores.containsKey(request.getStoreId())) {
+            Store store = stores.get(request.getStoreId());
+
+            if (store == null) {
                 throw new IllegalArgumentException(
                         "Unknown store: " + request.getStoreId()
                 );
@@ -55,6 +76,7 @@ public class AdvancedAllocationService {
 
         LocalDateTime evaluationTime = LocalDateTime.now();
 
+        // Process each product independently
         for (Map.Entry<String, List<ReplenishmentRequest>> entry
                 : groups.entrySet()) {
 
@@ -67,22 +89,30 @@ public class AdvancedAllocationService {
                 continue;
             }
 
-            // Calculate scores before changing inventory
             Map<ReplenishmentRequest, Double> scores =
                     new HashMap<>();
 
             double totalScore = 0;
 
+            // Calculate scores using dynamic priorities
             for (ReplenishmentRequest request : group) {
 
+                int priority = effectivePriorities.getOrDefault(
+                        request.getRequestId(),
+                        request.getPriority()
+                );
+
                 double score = calculateScore(
-                        request, evaluationTime
+                        request,
+                        priority,
+                        evaluationTime
                 );
 
                 scores.put(request, score);
                 totalScore += score;
             }
 
+            // Higher-scoring requests are processed first
             group.sort(
                     Comparator.comparingDouble(
                                     (ReplenishmentRequest request) ->
@@ -96,7 +126,7 @@ public class AdvancedAllocationService {
                             )
             );
 
-            // First pass: distribute proportional shares
+            // First pass - proportional weighted allocation
             for (ReplenishmentRequest request : group) {
 
                 int available = centre.getStock(productCode);
@@ -105,7 +135,8 @@ public class AdvancedAllocationService {
                     break;
                 }
 
-                double weight = scores.get(request) / totalScore;
+                double weight =
+                        scores.get(request) / totalScore;
 
                 int proportionalShare = (int) Math.floor(
                         initialStock * weight
@@ -130,7 +161,7 @@ public class AdvancedAllocationService {
                 }
             }
 
-            // Second pass: distribute unused stock
+            // Second pass - use any remaining stock
             for (ReplenishmentRequest request : group) {
 
                 int available = centre.getStock(productCode);
@@ -159,19 +190,20 @@ public class AdvancedAllocationService {
         return results;
     }
 
+    // Calculate urgency using multiple factors
     private double calculateScore(
             ReplenishmentRequest request,
+            int effectivePriority,
             LocalDateTime evaluationTime) {
 
-        double priorityScore =
-                request.getPriority() * 10.0;
+        double priorityScore = effectivePriority * 10.0;
 
         double demandScore =
                 Math.min(request.getExpectedDemand(), 1000) / 20.0;
 
         double shortageScore =
-                request.getRemainingQuantity() /
-                        (double) (request.getCurrentStock() + 1);
+                request.getRemainingQuantity()
+                        / (double) (request.getCurrentStock() + 1);
 
         shortageScore = Math.min(shortageScore, 30.0);
 
@@ -198,6 +230,7 @@ public class AdvancedAllocationService {
                 + deadlineScore;
     }
 
+    // Transfer stock from warehouse to store
     private void allocate(
             DistributionCentre centre,
             Store store,
