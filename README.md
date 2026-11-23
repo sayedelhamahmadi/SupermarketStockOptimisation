@@ -1,152 +1,303 @@
+
 # Supermarket Distribution and Stock Optimisation System
 
-## Project Overview
+## 1. Project Overview
 
-This project is a Java-based supermarket stock management and
-distribution system developed for the CPS5001 Algorithms and
-Data Structures module.
+This project was developed for CPS5001 Algorithms and Data Structures.
 
-The system manages supermarket products, stores, distribution
-centres, stock replenishment requests and inventory allocation.
+It is a Java 21 application that manages supermarket inventory, stock replenishment requests and distribution centre operations.
 
-It demonstrates the application of data structures and algorithms
-to supermarket stock distribution problems.
+The main objective is to demonstrate how data structures and algorithms can improve stock allocation, prioritise urgent requests and analyse supermarket demand.
 
-## Technologies Used
+The system includes two stock allocation approaches: basic priority-based allocation and advanced weighted allocation.
 
-- Java 21+
+## 2. Technologies Used
+
+- Java 21
 - IntelliJ IDEA
-- Git version control
 - Java Collections Framework
+- Git and GitHub
+- Java console interface
 
-## Main Features
+No external libraries are required.
+
+## 3. Main Features
 
 ### Inventory Management
-- Register supermarket products
-- Manage stores and distribution centres
-- Receive stock deliveries
-- Track inventory quantities
-- Search products and identify low stock
+
+- Register products, stores and distribution centres.
+- Receive stock deliveries.
+- Track warehouse and store inventory.
+- Search inventory records.
+- Detect low stock and shortages.
+- Prevent integer overflow during store stock additions.
 
 ### Replenishment Management
-- Submit stock requests
-- Prioritise urgent requests
-- Update request priorities
-- Cancel pending requests
-- Support partially fulfilled requests
 
-### Stock Allocation
-Two allocation strategies are implemented:
+- Create replenishment requests.
+- Manage requests using a PriorityQueue.
+- Apply dynamic priority scores.
+- Change priorities manually.
+- Cancel pending requests.
+- Handle partially fulfilled requests.
+- Prioritise requests using demand, shortages and deadlines.
 
-**Basic Allocation**
-Processes stock requests in priority order.
+### Basic Stock Allocation
 
-**Advanced Allocation**
-Uses weighted scoring based on:
-- Request priority
-- Expected demand
-- Current stock shortage
-- Delivery deadline
+The basic algorithm processes replenishment requests according to their effective priority.
 
-### Demand Analysis
-- Record simulated sales
-- Rank products by demand
-- Rank stores by demand
-- Identify high-demand and low-demand products
-- Detect stock shortages
+It allocates available warehouse inventory to each request until the request is fulfilled or the warehouse has insufficient stock.
 
-### Demand Forecasting
-- Moving average forecasting
-- Shortage prediction
-- Demand spike detection
-- Increasing and decreasing demand trends
+Partial allocations are supported.
 
-## Data Structures and Algorithms
+### Advanced Stock Allocation
 
-| Structure / Algorithm | Purpose |
+The advanced algorithm uses weighted urgency scores based on:
+
+- Effective request priority.
+- Expected product demand.
+- Current store stock shortage.
+- Delivery deadline.
+
+Requests are grouped by product and sorted by weighted urgency.
+
+The algorithm performs two allocation stages:
+
+1. Distribute warehouse stock proportionally using urgency scores.
+2. Redistribute remaining stock to outstanding requests in score order.
+
+Stock quantities and request fulfilment are updated after successful transfers.
+
+Historical sales data can also increase the effective priority used by advanced allocation.
+
+## 4. Demand Analysis
+
+The system supports:
+
+- Recording product sales.
+- Ranking products by demand.
+- Ranking stores by demand.
+- Identifying high-demand products.
+- Comparing demand across stores.
+
+The demand analysis service uses a custom merge sort implementation for ranking.
+
+## 5. Demand Forecasting
+
+Demand forecasting includes:
+
+- Moving-average demand prediction.
+- Shortage prediction.
+- Demand spike detection.
+- Increasing, decreasing and stable demand trends.
+- Detection of recurring weekly demand patterns.
+- Calculation of average demand for each position in a seven-day cycle.
+
+The weekly-pattern detector compares recurring high-demand positions across two weeks.
+
+This is a simple heuristic intended for simulated supermarket data, not a statistically validated seasonal forecasting model.
+
+## 6. Data Structures and Algorithms
+
+| Structure or Algorithm | Purpose |
 |---|---|
-| HashMap | Product, store and inventory lookup |
-| PriorityQueue | Urgent replenishment requests |
-| Merge Sort | Ranking products and stores |
-| Linear Search | Identifying products meeting conditions |
-| Weighted Allocation | Distributing limited warehouse stock |
-| Moving Average | Forecasting product demand |
+| HashMap | Fast lookup of products, stores, requests and inventory |
+| PriorityQueue | Process urgent replenishment requests |
+| Comparator | Order requests by priority and deadlines |
+| Merge Sort | Rank products and stores by demand |
+| Weighted Scoring | Calculate advanced allocation urgency |
+| Proportional Allocation | Share limited warehouse stock |
+| Moving Average | Forecast demand from historical sales |
+| Weekly Pattern Detection | Identify repeated high-demand periods |
 
-## Project Structure
+## 7. Project Structure
 
 ```text
-src/
-└── com/supermarket/
-    ├── Main.java
-    ├── SupermarketConsole.java
-    ├── PerformanceBenchmark.java
-    ├── model/
-    │   ├── Product.java
-    │   ├── Store.java
-    │   ├── DistributionCentre.java
-    │   └── ReplenishmentRequest.java
-    ├── service/
-    │   ├── RequestManager.java
-    │   ├── StockAllocationService.java
-    │   ├── AdvancedAllocationService.java
-    │   ├── InventorySearchService.java
-    │   └── SupermarketSystem.java
-    └── analysis/
-        ├── DemandAnalysisService.java
-        └── DemandForecastService.java
+SupermarketStockOptimisation/
+├── README.md
+└── src/
+    └── com/
+        └── supermarket/
+            ├── Main.java
+            ├── SupermarketConsole.java
+            ├── PerformanceBenchmark.java
+            ├── AllocationTests.java
+            │
+            ├── model/
+            │   ├── Product.java
+            │   ├── Store.java
+            │   ├── DistributionCentre.java
+            │   └── ReplenishmentRequest.java
+            │
+            ├── service/
+            │   ├── RequestManager.java
+            │   ├── StockAllocationService.java
+            │   ├── AdvancedAllocationService.java
+            │   ├── InventorySearchService.java
+            │   └── SupermarketSystem.java
+            │
+            └── analysis/
+                ├── DemandAnalysisService.java
+                └── DemandForecastService.java
 ```
 
-## How to Run
+## 8. How to Run the Project
 
-1. Open the project using IntelliJ IDEA.
-2. Configure JDK 21 or newer.
-3. Open `src/com/supermarket/SupermarketConsole.java`.
-4. Run the `main()` method.
-5. Follow the console menu to operate the system.
+### Requirements
 
-## Example Workflow
+- Java Development Kit (JDK) 21 or later.
+- IntelliJ IDEA or another Java IDE.
 
-1. Register a product.
-2. Register a supermarket store.
-3. Register a distribution centre.
-4. Add inventory to the distribution centre.
-5. Submit replenishment requests.
-6. Process requests using basic or advanced allocation.
-7. Check updated stock quantities.
-8. Record sales and analyse demand.
+### Run the Console Application
 
-## Performance Benchmarking
+1. Open the project in IntelliJ IDEA.
+2. Configure the project SDK to Java 21.
+3. Open `SupermarketConsole.java`.
+4. Run its `main()` method.
+5. Use the numbered console menu.
 
-`PerformanceBenchmark.java` compares the basic and advanced
-allocation algorithms using simulated workloads.
+### Run the Allocation Demonstration
 
-Dataset sizes:
+Open `Main.java` and run its `main()` method.
+
+This demonstrates basic and advanced stock allocation using predefined supermarket requests.
+
+### Run Automated Tests
+
+Open `AllocationTests.java` and run its `main()` method.
+
+The program reports passed and failed tests and returns a non-zero exit status if any test fails.
+
+### Run Performance Benchmarks
+
+Open `PerformanceBenchmark.java` and run its `main()` method.
+
+The benchmark compares basic and advanced allocation using different request volumes.
+
+## 9. Automated Testing
+
+The project includes a standalone Java test runner containing 12 tests.
+
+| Test | Description |
+|---|---|
+| 1 | Full stock allocation |
+| 2 | Partial stock allocation |
+| 3 | Warehouse stock conservation |
+| 4 | No warehouse stock available |
+| 5 | Wrong-store validation |
+| 6 | Dynamic priority ordering |
+| 7 | Advanced allocation conservation |
+| 8 | Store integer overflow protection |
+| 9 | Basic allocation overflow protection |
+| 10 | Advanced allocation overflow protection |
+| 11 | Weekly demand-pattern detection |
+| 12 | Historical demand influencing allocation |
+
+### Latest Test Results
+
+Passed: 12
+
+Failed: 0
+
+Total: 12
+
+All 12 tests passed during the latest recorded execution.
+
+The tests use a custom Java runner rather than JUnit.
+
+## 10. Performance Benchmarking
+
+The benchmark evaluates request volumes of:
+
 - 100 requests
 - 500 requests
 - 1,000 requests
 - 5,000 requests
 - 10,000 requests
 
-Execution time is measured using `System.nanoTime()`.
+The updated methodology uses:
 
-The initial results are preliminary single-run measurements.
-Repeated runs and warm-up would improve measurement reliability.
+- Three JVM warm-up runs.
+- Five measured runs.
+- Fresh, identically generated input data.
+- Alternating execution order.
+- Average execution time.
+- Standard deviation.
+- Checks that expected quantities were allocated.
 
-## Known Limitations
+### Example Results
 
-- Inventory is stored in memory and is not saved between runs.
-- Demand forecasting assumes sales observations are recorded
-  in chronological order.
-- Advanced allocation uses a heuristic rather than guaranteeing
-  a globally optimal solution.
-- The console interface is designed for demonstration purposes.
-- Additional integration and performance validation is needed.
+| Requests | Basic Average (ms) | Advanced Average (ms) |
+|---:|---:|---:|
+| 100 | 0.697 | 0.384 |
+| 500 | 1.952 | 1.481 |
+| 1,000 | 2.875 | 2.247 |
+| 5,000 | 11.203 | 4.646 |
+| 10,000 | 22.868 | 10.257 |
 
-## Academic Context
+These results were recorded on the development computer and represent one benchmark execution containing five measured runs per request size.
 
-Module: CPS5001 - Algorithms and Data Structures
+The advanced approach was faster in this execution.
 
-Project: Supermarket Distribution and Stock Optimisation System
+However, the benchmark measures two different workflows: basic request scheduling plus allocation, and advanced grouping, scoring, sorting and allocation. It does not establish that advanced allocation is universally faster.
 
-The project demonstrates practical application of Java data
-structures and algorithms to inventory and distribution problems.
+Execution times can vary due to JVM optimisation, memory management and system activity.
+
+## 11. Algorithm Complexity
+
+Typical complexity characteristics include:
+
+| Operation | Complexity |
+|---|---|
+| HashMap lookup | O(1) average |
+| PriorityQueue insertion | O(log n) |
+| PriorityQueue removal of highest-priority element | O(log n) |
+| Full queue reprioritisation and rebuilding | O(n log n) conservative upper bound |
+| Merge Sort | O(n log n) |
+| Moving-average calculation | O(k), for a window of k days |
+| Weekly-pattern detection | O(1) for the final two weeks |
+| Advanced request sorting | O(n log n) |
+
+These are operation-level complexity descriptions. Overall algorithm complexity depends on the number of requests, products and allocation passes.
+
+## 12. Reliability and Validation
+
+The system includes:
+
+- Validation of allocation inputs.
+- Protection against invalid stock quantities.
+- Validation that requests belong to the correct store.
+- Prevention of integer overflow in store stock additions.
+- Stock-transfer checks before warehouse inventory removal.
+- Rollback handling for selected allocation failures.
+- Conservation checks in automated tests.
+
+These safeguards improve reliability but do not constitute full database transaction support.
+
+## 13. Limitations
+
+- Data is stored in memory and is not persisted between application runs.
+- The application uses simulated supermarket data.
+- Demand forecasting uses simple historical methods.
+- Weekly-pattern detection requires consecutively recorded daily observations.
+- The current test runner is not based on JUnit.
+- Benchmark results depend on hardware and workload.
+- The application is single-threaded and does not provide concurrent inventory transactions.
+
+## 14. Future Improvements
+
+Possible extensions include:
+
+- Persistent inventory storage.
+- Additional forecasting models.
+- More sophisticated seasonal analysis.
+- Automated inventory import.
+- Multi-warehouse allocation.
+- Expanded automated test coverage.
+- Concurrent transaction handling.
+
+## 15. Academic Context
+
+This project demonstrates the application of data structures, algorithms, complexity analysis, performance benchmarking and software testing to supermarket inventory distribution.
+
+Developed for CPS5001 Algorithms and Data Structures.
