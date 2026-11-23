@@ -1,6 +1,8 @@
+
 package com.supermarket.service;
 
 import com.supermarket.model.ReplenishmentRequest;
+
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -33,14 +35,20 @@ public class RequestManager {
                                 (ReplenishmentRequest request) ->
                                         getEffectivePriority(request)
                         ).reversed()
-                        .thenComparing(ReplenishmentRequest::getDeadline)
-                        .thenComparing(ReplenishmentRequest::getRequestTime)
-                        .thenComparing(ReplenishmentRequest::getRequestId);
+                        .thenComparing(
+                                ReplenishmentRequest::getDeadline
+                        )
+                        .thenComparing(
+                                ReplenishmentRequest::getRequestTime
+                        )
+                        .thenComparing(
+                                ReplenishmentRequest::getRequestId
+                        );
 
         queue = new PriorityQueue<>(comparator);
     }
 
-
+    // Add a request without rebuilding the entire queue.
     public void addRequest(ReplenishmentRequest request) {
 
         if (request == null) {
@@ -62,10 +70,14 @@ public class RequestManager {
             return;
         }
 
-        requests.put(id, request);
+        int priority = calculateEffectivePriority(
+                request,
+                LocalDateTime.now()
+        );
 
-        // Recalculate priorities and rebuild the queue.
-        reprioritiseRequests();
+        effectivePriorities.put(id, priority);
+        requests.put(id, request);
+        queue.offer(request);
     }
 
     public boolean cancelRequest(String requestId) {
@@ -78,12 +90,14 @@ public class RequestManager {
         }
 
         queue.remove(request);
+
         manualPriorities.remove(requestId);
         effectivePriorities.remove(requestId);
 
         return true;
     }
 
+    // Recalculate the queue after a manual priority change.
     public void updatePriority(
             String requestId, int priority) {
 
@@ -107,6 +121,12 @@ public class RequestManager {
     public int getEffectivePriority(
             ReplenishmentRequest request) {
 
+        if (request == null) {
+            throw new IllegalArgumentException(
+                    "Request cannot be null"
+            );
+        }
+
         String id = request.getRequestId();
 
         return effectivePriorities.getOrDefault(
@@ -118,45 +138,60 @@ public class RequestManager {
         );
     }
 
+    // Calculate dynamic priority for one request.
+    private int calculateEffectivePriority(
+            ReplenishmentRequest request,
+            LocalDateTime now) {
+
+        String id = request.getRequestId();
+
+        int score = manualPriorities.getOrDefault(
+                id,
+                request.getPriority()
+        );
+
+        if (request.getExpectedDemand() > 200) {
+            score++;
+        }
+
+        if (request.getCurrentStock() < 10) {
+            score++;
+        }
+
+        long hours = ChronoUnit.HOURS.between(
+                now,
+                request.getDeadline()
+        );
+
+        if (hours <= 24) {
+            score++;
+        }
+
+        return Math.min(score, 8);
+    }
+
+    // Refresh all dynamic priorities when required.
     public void reprioritiseRequests() {
 
         LocalDateTime now = LocalDateTime.now();
 
         for (ReplenishmentRequest request : requests.values()) {
 
-            String id = request.getRequestId();
-
-            int score = manualPriorities.getOrDefault(
-                    id,
-                    request.getPriority()
+            int priority = calculateEffectivePriority(
+                    request,
+                    now
             );
-
-            if (request.getExpectedDemand() > 200) {
-                score += 1;
-            }
-
-            if (request.getCurrentStock() < 10) {
-                score += 1;
-            }
-
-            long hours = ChronoUnit.HOURS.between(
-                    now,
-                    request.getDeadline()
-            );
-
-            if (hours <= 24) {
-                score += 1;
-            }
 
             effectivePriorities.put(
-                    id,
-                    Math.min(score, 8)
+                    request.getRequestId(),
+                    priority
             );
         }
 
         rebuildQueue();
     }
 
+    // Rebuild only after a full priority recalculation.
     private void rebuildQueue() {
 
         queue.clear();
@@ -196,6 +231,7 @@ public class RequestManager {
         return !queue.isEmpty();
     }
 
+    // Return requests in priority order.
     public List<ReplenishmentRequest> getAllRequests() {
 
         PriorityQueue<ReplenishmentRequest> copy =
@@ -227,6 +263,7 @@ public class RequestManager {
         return snapshot;
     }
 
+    // Return a partially fulfilled request to the queue.
     public void requeueRequest(
             ReplenishmentRequest request) {
 
@@ -256,8 +293,14 @@ public class RequestManager {
             );
         }
 
+        int priority = calculateEffectivePriority(
+                request,
+                LocalDateTime.now()
+        );
+
         inProgress.remove(id);
 
+        effectivePriorities.put(id, priority);
         requests.put(id, request);
         queue.offer(request);
     }
@@ -280,8 +323,8 @@ public class RequestManager {
         ReplenishmentRequest pending = requests.get(id);
         ReplenishmentRequest active = inProgress.get(id);
 
-        if (pending != null && pending != request
-                || active != null && active != request) {
+        if ((pending != null && pending != request)
+                || (active != null && active != request)) {
             throw new IllegalArgumentException(
                     "Request ID belongs to another request"
             );

@@ -4,6 +4,7 @@ package com.supermarket.service;
 import com.supermarket.model.DistributionCentre;
 import com.supermarket.model.ReplenishmentRequest;
 import com.supermarket.model.Store;
+
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -35,15 +36,18 @@ public class AdvancedAllocationService {
 
         if (centre == null || stores == null
                 || requests == null || effectivePriorities == null) {
+
             throw new IllegalArgumentException(
                     "Allocation inputs cannot be null"
             );
         }
 
         Map<String, Integer> results = new HashMap<>();
+
         Map<String, List<ReplenishmentRequest>> groups =
                 new HashMap<>();
 
+        // Validate requests and group them by product.
         for (ReplenishmentRequest request : requests) {
 
             if (request == null) {
@@ -72,10 +76,12 @@ public class AdvancedAllocationService {
 
         LocalDateTime evaluationTime = LocalDateTime.now();
 
+        // Process each product independently.
         for (Map.Entry<String, List<ReplenishmentRequest>> entry
                 : groups.entrySet()) {
 
             String productCode = entry.getKey();
+
             List<ReplenishmentRequest> group = entry.getValue();
 
             int initialStock = centre.getStock(productCode);
@@ -89,6 +95,7 @@ public class AdvancedAllocationService {
 
             double totalScore = 0;
 
+            // Calculate weighted urgency for each request.
             for (ReplenishmentRequest request : group) {
 
                 int priority = effectivePriorities.getOrDefault(
@@ -106,6 +113,7 @@ public class AdvancedAllocationService {
                 totalScore += score;
             }
 
+            // Higher scores are processed first.
             group.sort(
                     Comparator.comparingDouble(
                                     (ReplenishmentRequest request) ->
@@ -119,6 +127,7 @@ public class AdvancedAllocationService {
                             )
             );
 
+            // FIRST PASS: proportional allocation.
             for (ReplenishmentRequest request : group) {
 
                 int available = centre.getStock(productCode);
@@ -127,8 +136,7 @@ public class AdvancedAllocationService {
                     break;
                 }
 
-                double weight =
-                        scores.get(request) / totalScore;
+                double weight = scores.get(request) / totalScore;
 
                 int proportionalShare = (int) Math.floor(
                         initialStock * weight
@@ -153,6 +161,7 @@ public class AdvancedAllocationService {
                 }
             }
 
+            // SECOND PASS: redistribute remaining warehouse stock.
             for (ReplenishmentRequest request : group) {
 
                 int available = centre.getStock(productCode);
@@ -181,6 +190,8 @@ public class AdvancedAllocationService {
         return results;
     }
 
+    // Weighted urgency based on priority, demand,
+    // shortage severity and delivery deadline.
     private double calculateScore(
             ReplenishmentRequest request,
             int effectivePriority,
@@ -220,6 +231,7 @@ public class AdvancedAllocationService {
                 + deadlineScore;
     }
 
+    // Safely transfer stock between warehouse and store.
     private void allocate(
             DistributionCentre centre,
             Store store,
@@ -227,21 +239,83 @@ public class AdvancedAllocationService {
             int quantity,
             Map<String, Integer> results) {
 
+        if (store == null || request == null) {
+            throw new IllegalArgumentException(
+                    "Store and request cannot be null"
+            );
+        }
+
+        if (!store.getStoreId().equals(request.getStoreId())) {
+            throw new IllegalArgumentException(
+                    "Request does not belong to this store"
+            );
+        }
+
+        if (quantity <= 0
+                || quantity > request.getRemainingQuantity()) {
+
+            throw new IllegalArgumentException(
+                    "Invalid allocation quantity"
+            );
+        }
+
         String productCode = request.getProductCode();
 
-        if (!centre.removeStock(productCode, quantity)) {
+        // Check that the receiving store will not overflow.
+        int currentStoreStock = store.getStock(productCode);
+
+        Math.addExact(currentStoreStock, quantity);
+
+        // Verify available warehouse stock.
+        if (centre.getStock(productCode) < quantity) {
             throw new IllegalStateException(
                     "Insufficient warehouse stock"
             );
         }
 
-        store.addStock(productCode, quantity);
-        request.allocateStock(quantity);
+        // Verify result total will not overflow.
+        int previousResult = results.getOrDefault(
+                request.getRequestId(), 0
+        );
 
-        results.merge(
+        int updatedResult = Math.addExact(
+                previousResult, quantity
+        );
+
+        // Remove warehouse inventory.
+        if (!centre.removeStock(productCode, quantity)) {
+            throw new IllegalStateException(
+                    "Warehouse stock removal failed"
+            );
+        }
+
+        // Update the receiving store.
+        try {
+            store.addStock(productCode, quantity);
+        } catch (RuntimeException exception) {
+
+            // Restore warehouse inventory if delivery fails.
+            centre.addStock(productCode, quantity);
+
+            throw exception;
+        }
+
+        // Update request tracking.
+        try {
+            request.allocateStock(quantity);
+        } catch (RuntimeException exception) {
+
+            // Roll back the stock transfer.
+            store.removeStock(productCode, quantity);
+            centre.addStock(productCode, quantity);
+
+            throw exception;
+        }
+
+        // Record successful allocation.
+        results.put(
                 request.getRequestId(),
-                quantity,
-                Integer::sum
+                updatedResult
         );
     }
 }

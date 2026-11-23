@@ -1,3 +1,4 @@
+
 package com.supermarket.model;
 
 import java.util.HashMap;
@@ -40,10 +41,12 @@ public class Store {
             );
         }
 
-        inventory.put(
-                productCode,
-                inventory.getOrDefault(productCode, 0) + quantity
-        );
+        int currentStock = inventory.getOrDefault(productCode, 0);
+
+        // Prevent integer overflow and negative stock.
+        int updatedStock = Math.addExact(currentStock, quantity);
+
+        inventory.put(productCode, updatedStock);
     }
 
     public boolean removeStock(String productCode, int quantity) {

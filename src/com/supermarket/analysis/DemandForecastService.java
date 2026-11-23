@@ -1,3 +1,4 @@
+
 package com.supermarket.analysis;
 
 import com.supermarket.model.Store;
@@ -38,6 +39,7 @@ public class DemandForecastService {
                 .add(quantity);
     }
 
+    // Moving average of recent daily sales.
     public double forecastDailyDemand(
             String storeId,
             String productCode,
@@ -56,7 +58,6 @@ public class DemandForecastService {
         }
 
         int start = Math.max(0, history.size() - days);
-
         long total = 0;
 
         for (int i = start; i < history.size(); i++) {
@@ -66,6 +67,7 @@ public class DemandForecastService {
         return total / (double) (history.size() - start);
     }
 
+    // Find products likely to run out during the forecast period.
     public List<String> predictShortages(
             Store store,
             int forecastDays,
@@ -82,8 +84,7 @@ public class DemandForecastService {
 
         Map<String, List<Integer>> products =
                 salesHistory.getOrDefault(
-                        store.getStoreId(),
-                        Map.of()
+                        store.getStoreId(), Map.of()
                 );
 
         for (String productCode : products.keySet()) {
@@ -102,10 +103,10 @@ public class DemandForecastService {
         }
 
         shortages.sort(String::compareTo);
-
         return shortages;
     }
 
+    // Detect unusually high recent demand.
     public boolean isDemandSpike(
             String storeId,
             String productCode,
@@ -168,7 +169,6 @@ public class DemandForecastService {
         }
 
         int size = history.size();
-
         long previousTotal = 0;
         long recentTotal = 0;
 
@@ -192,8 +192,108 @@ public class DemandForecastService {
         return "STABLE";
     }
 
+    // Detect a recurring seven-day pattern.
+    // Days are recorded consecutively, oldest to newest.
+    // This does not assume which day is Monday.
+    public boolean hasWeeklyPattern(
+            String storeId,
+            String productCode) {
+
+        List<Integer> history = getHistory(storeId, productCode);
+
+        // At least two complete weeks are required.
+        if (history.size() < 14) {
+            return false;
+        }
+
+        int size = history.size();
+
+        double overallAverage = 0;
+
+        for (int i = size - 14; i < size; i++) {
+            overallAverage += history.get(i);
+        }
+
+        overallAverage /= 14.0;
+
+        if (overallAverage == 0) {
+            return false;
+        }
+
+        // Compare matching positions in the last two weeks.
+        // Identify repeating high-demand days.
+        int matchingHighDays = 0;
+
+        for (int day = 0; day < 7; day++) {
+
+            int previous = history.get(size - 14 + day);
+            int recent = history.get(size - 7 + day);
+
+            if (previous >= overallAverage * 1.20
+                    && recent >= overallAverage * 1.20) {
+                matchingHighDays++;
+            }
+        }
+
+        return matchingHighDays > 0;
+    }
+
+    // Average demand for each position of a seven-day cycle.
+    // Index 0 is the first recorded day, not necessarily Monday.
+    public double[] getWeeklyAverages(
+            String storeId,
+            String productCode) {
+
+        List<Integer> history = getHistory(storeId, productCode);
+
+        double[] averages = new double[7];
+        int[] counts = new int[7];
+
+        for (int i = 0; i < history.size(); i++) {
+            int day = i % 7;
+            averages[day] += history.get(i);
+            counts[day]++;
+        }
+
+        for (int i = 0; i < 7; i++) {
+            if (counts[i] > 0) {
+                averages[i] /= counts[i];
+            }
+        }
+
+        return averages;
+    }
+
+    // Read historical average without exposing internal data.
+    public double getHistoricalAverage(
+            String storeId,
+            String productCode) {
+
+        List<Integer> history = getHistory(storeId, productCode);
+
+        if (history.isEmpty()) {
+            return 0;
+        }
+
+        long total = 0;
+
+        for (int quantity : history) {
+            total += quantity;
+        }
+
+        return total / (double) history.size();
+    }
+
+    public int getHistoryLength(
+            String storeId,
+            String productCode) {
+
+        return getHistory(storeId, productCode).size();
+    }
+
     private List<Integer> getHistory(
-            String storeId, String productCode) {
+            String storeId,
+            String productCode) {
 
         return salesHistory
                 .getOrDefault(storeId, Map.of())

@@ -1,3 +1,4 @@
+
 package com.supermarket.service;
 
 import com.supermarket.analysis.DemandAnalysisService;
@@ -6,6 +7,7 @@ import com.supermarket.model.DistributionCentre;
 import com.supermarket.model.Product;
 import com.supermarket.model.ReplenishmentRequest;
 import com.supermarket.model.Store;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,24 +39,20 @@ public class SupermarketSystem {
             new DemandForecastService();
 
     public void addProduct(Product product) {
-
         if (product == null) {
             throw new IllegalArgumentException(
                     "Product cannot be null"
             );
         }
-
         products.put(product.getProductCode(), product);
     }
 
     public void addStore(Store store) {
-
         if (store == null) {
             throw new IllegalArgumentException(
                     "Store cannot be null"
             );
         }
-
         stores.put(store.getStoreId(), store);
     }
 
@@ -66,7 +64,6 @@ public class SupermarketSystem {
                     "Distribution centre cannot be null"
             );
         }
-
         centres.put(centre.getCentreId(), centre);
     }
 
@@ -122,11 +119,10 @@ public class SupermarketSystem {
             String requestId,
             int priority) {
 
-        requestManager.updatePriority(
-                requestId, priority
-        );
+        requestManager.updatePriority(requestId, priority);
     }
 
+    // Basic allocation uses the dynamic priority queue.
     public int processRequests(String centreId) {
 
         DistributionCentre centre = requireCentre(centreId);
@@ -150,7 +146,6 @@ public class SupermarketSystem {
             Store store = stores.get(request.getStoreId());
 
             try {
-
                 int allocated = basicAllocation.allocateStock(
                         centre,
                         store,
@@ -183,6 +178,7 @@ public class SupermarketSystem {
         return totalAllocated;
     }
 
+    // Advanced allocation also considers recorded historical sales.
     public Map<String, Integer> processAdvancedRequests(
             String centreId) {
 
@@ -195,6 +191,62 @@ public class SupermarketSystem {
 
         Map<String, Integer> priorities =
                 requestManager.getPrioritySnapshot();
+
+        // Adjust allocation priorities using actual sales history.
+        for (ReplenishmentRequest request : pendingRequests) {
+
+            String id = request.getRequestId();
+            String storeId = request.getStoreId();
+            String productCode = request.getProductCode();
+
+            int historyLength = demandForecast.getHistoryLength(
+                    storeId,
+                    productCode
+            );
+
+            // Keep original priority if no sales were recorded.
+            if (historyLength == 0) {
+                continue;
+            }
+
+            double historicalAverage =
+                    demandForecast.getHistoricalAverage(
+                            storeId,
+                            productCode
+                    );
+
+            int historicalBonus = 0;
+
+            // Simulated demand thresholds.
+            if (historicalAverage >= 30.0) {
+                historicalBonus++;
+            }
+
+            if (historicalAverage >= 75.0) {
+                historicalBonus++;
+            }
+
+            // Recurring high-demand days increase urgency.
+            if (demandForecast.hasWeeklyPattern(
+                    storeId,
+                    productCode
+            )) {
+                historicalBonus++;
+            }
+
+            int originalPriority = priorities.getOrDefault(
+                    id,
+                    request.getPriority()
+            );
+
+            // Dynamic priority ranges from 1 to 8.
+            int adjustedPriority = Math.min(
+                    8,
+                    originalPriority + historicalBonus
+            );
+
+            priorities.put(id, adjustedPriority);
+        }
 
         Map<String, Integer> results =
                 advancedAllocation.allocateStock(
@@ -217,11 +269,8 @@ public class SupermarketSystem {
             }
 
             if (request.isFulfilled()) {
-
                 requestManager.completeRequest(request);
-
             } else {
-
                 requestManager.requeueRequest(request);
             }
         }
@@ -229,8 +278,7 @@ public class SupermarketSystem {
         return results;
     }
 
-    private DistributionCentre requireCentre(
-            String centreId) {
+    private DistributionCentre requireCentre(String centreId) {
 
         DistributionCentre centre = centres.get(centreId);
 
@@ -248,12 +296,12 @@ public class SupermarketSystem {
             String productCode,
             int quantity) {
 
-        validateStoreAndProduct(
-                storeId, productCode
-        );
+        validateStoreAndProduct(storeId, productCode);
 
         demandAnalysis.recordSale(
-                storeId, productCode, quantity
+                storeId,
+                productCode,
+                quantity
         );
     }
 
@@ -262,12 +310,12 @@ public class SupermarketSystem {
             String productCode,
             int quantity) {
 
-        validateStoreAndProduct(
-                storeId, productCode
-        );
+        validateStoreAndProduct(storeId, productCode);
 
         demandForecast.recordDailySales(
-                storeId, productCode, quantity
+                storeId,
+                productCode,
+                quantity
         );
     }
 
@@ -293,9 +341,7 @@ public class SupermarketSystem {
             String productCode,
             int days) {
 
-        validateStoreAndProduct(
-                storeId, productCode
-        );
+        validateStoreAndProduct(storeId, productCode);
 
         return demandForecast.forecastDailyDemand(
                 storeId,
