@@ -1,8 +1,6 @@
-
 package com.supermarket.service;
 
 import com.supermarket.model.ReplenishmentRequest;
-
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -42,7 +40,7 @@ public class RequestManager {
         queue = new PriorityQueue<>(comparator);
     }
 
-    // Register a new replenishment request
+
     public void addRequest(ReplenishmentRequest request) {
 
         if (request == null) {
@@ -65,10 +63,11 @@ public class RequestManager {
         }
 
         requests.put(id, request);
-        queue.offer(request);
+
+        // Recalculate priorities and rebuild the queue.
+        reprioritiseRequests();
     }
 
-    // Cancel a pending request
     public boolean cancelRequest(String requestId) {
 
         ReplenishmentRequest request =
@@ -85,7 +84,6 @@ public class RequestManager {
         return true;
     }
 
-    // Manually change priority
     public void updatePriority(
             String requestId, int priority) {
 
@@ -106,7 +104,6 @@ public class RequestManager {
         reprioritiseRequests();
     }
 
-    // Get the current effective priority
     public int getEffectivePriority(
             ReplenishmentRequest request) {
 
@@ -121,7 +118,6 @@ public class RequestManager {
         );
     }
 
-    // Recalculate priority from original values
     public void reprioritiseRequests() {
 
         LocalDateTime now = LocalDateTime.now();
@@ -130,23 +126,19 @@ public class RequestManager {
 
             String id = request.getRequestId();
 
-            // Start from the original or manually set priority
             int score = manualPriorities.getOrDefault(
                     id,
                     request.getPriority()
             );
 
-            // High expected demand
             if (request.getExpectedDemand() > 200) {
                 score += 1;
             }
 
-            // Critical stock level
             if (request.getCurrentStock() < 10) {
                 score += 1;
             }
 
-            // Urgent delivery deadline
             long hours = ChronoUnit.HOURS.between(
                     now,
                     request.getDeadline()
@@ -165,7 +157,6 @@ public class RequestManager {
         rebuildQueue();
     }
 
-    // Rebuild queue after priority changes
     private void rebuildQueue() {
 
         queue.clear();
@@ -178,7 +169,6 @@ public class RequestManager {
         }
     }
 
-    // Retrieve the highest-priority request
     public ReplenishmentRequest getNextRequest() {
 
         ReplenishmentRequest request = queue.poll();
@@ -194,22 +184,18 @@ public class RequestManager {
         return request;
     }
 
-    // View next request without removing it
     public ReplenishmentRequest peekNextRequest() {
         return queue.peek();
     }
 
-    // Number of pending requests
     public int getPendingRequestCount() {
         return queue.size();
     }
 
-    // Check if requests are pending
     public boolean hasPendingRequests() {
         return !queue.isEmpty();
     }
 
-    // Get requests in priority order
     public List<ReplenishmentRequest> getAllRequests() {
 
         PriorityQueue<ReplenishmentRequest> copy =
@@ -225,7 +211,6 @@ public class RequestManager {
         return result;
     }
 
-    // Return effective priorities for allocation
     public Map<String, Integer> getPrioritySnapshot() {
 
         Map<String, Integer> snapshot =
@@ -242,7 +227,6 @@ public class RequestManager {
         return snapshot;
     }
 
-    // Requeue a partially fulfilled request
     public void requeueRequest(
             ReplenishmentRequest request) {
 
@@ -278,7 +262,6 @@ public class RequestManager {
         queue.offer(request);
     }
 
-    // Clean up completed requests
     public void completeRequest(
             ReplenishmentRequest request) {
 

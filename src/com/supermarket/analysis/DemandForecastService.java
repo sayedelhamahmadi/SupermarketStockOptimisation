@@ -1,8 +1,6 @@
-
 package com.supermarket.analysis;
 
 import com.supermarket.model.Store;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -10,14 +8,12 @@ import java.util.Map;
 
 public class DemandForecastService {
 
-    // Store ID -> Product code -> Daily sales history
     private final Map<String, Map<String, List<Integer>>> salesHistory;
 
     public DemandForecastService() {
         salesHistory = new HashMap<>();
     }
 
-    // Add one day's sales information
     public void recordDailySales(
             String storeId,
             String productCode,
@@ -42,7 +38,6 @@ public class DemandForecastService {
                 .add(quantity);
     }
 
-    // Forecast demand using a moving average
     public double forecastDailyDemand(
             String storeId,
             String productCode,
@@ -71,7 +66,6 @@ public class DemandForecastService {
         return total / (double) (history.size() - start);
     }
 
-    // Predict stock shortages over the next N days
     public List<String> predictShortages(
             Store store,
             int forecastDays,
@@ -112,7 +106,6 @@ public class DemandForecastService {
         return shortages;
     }
 
-    // Detect unusually high recent demand
     public boolean isDemandSpike(
             String storeId,
             String productCode,
@@ -157,7 +150,6 @@ public class DemandForecastService {
         return recentAverage > historicalAverage * multiplier;
     }
 
-    // Identify increasing or decreasing demand
     public String identifyTrend(
             String storeId,
             String productCode,

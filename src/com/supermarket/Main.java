@@ -1,4 +1,3 @@
-
 package com.supermarket;
 
 import com.supermarket.model.DistributionCentre;
@@ -7,7 +6,6 @@ import com.supermarket.model.Store;
 import com.supermarket.service.AdvancedAllocationService;
 import com.supermarket.service.RequestManager;
 import com.supermarket.service.StockAllocationService;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;

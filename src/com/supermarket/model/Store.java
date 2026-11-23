@@ -1,4 +1,3 @@
-
 package com.supermarket.model;
 
 import java.util.HashMap;
@@ -11,7 +10,6 @@ public class Store {
     private String location;
     private Map<String, Integer> inventory;
 
-    // Constructor
     public Store(String storeId, String name, String location) {
         this.storeId = storeId;
         this.name = name;
@@ -19,7 +17,6 @@ public class Store {
         this.inventory = new HashMap<>();
     }
 
-    // Getters
     public String getStoreId() {
         return storeId;
     }
@@ -36,7 +33,6 @@ public class Store {
         return new HashMap<>(inventory);
     }
 
-    // Add stock to the store
     public void addStock(String productCode, int quantity) {
         if (quantity <= 0) {
             throw new IllegalArgumentException(
@@ -50,7 +46,6 @@ public class Store {
         );
     }
 
-    // Remove stock from the store
     public boolean removeStock(String productCode, int quantity) {
         if (quantity <= 0) {
             throw new IllegalArgumentException(
@@ -68,7 +63,6 @@ public class Store {
         return true;
     }
 
-    // Check stock quantity
     public int getStock(String productCode) {
         return inventory.getOrDefault(productCode, 0);
     }

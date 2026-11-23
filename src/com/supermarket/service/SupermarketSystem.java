@@ -1,4 +1,3 @@
-
 package com.supermarket.service;
 
 import com.supermarket.analysis.DemandAnalysisService;
@@ -7,7 +6,6 @@ import com.supermarket.model.DistributionCentre;
 import com.supermarket.model.Product;
 import com.supermarket.model.ReplenishmentRequest;
 import com.supermarket.model.Store;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +36,6 @@ public class SupermarketSystem {
     private final DemandForecastService demandForecast =
             new DemandForecastService();
 
-    // Register a product
     public void addProduct(Product product) {
 
         if (product == null) {
@@ -50,7 +47,6 @@ public class SupermarketSystem {
         products.put(product.getProductCode(), product);
     }
 
-    // Register a store
     public void addStore(Store store) {
 
         if (store == null) {
@@ -62,7 +58,6 @@ public class SupermarketSystem {
         stores.put(store.getStoreId(), store);
     }
 
-    // Register a distribution centre
     public void addDistributionCentre(
             DistributionCentre centre) {
 
@@ -75,7 +70,6 @@ public class SupermarketSystem {
         centres.put(centre.getCentreId(), centre);
     }
 
-    // Search methods
     public Product findProduct(String productCode) {
         return products.get(productCode);
     }
@@ -88,7 +82,6 @@ public class SupermarketSystem {
         return centres.get(centreId);
     }
 
-    // Receive warehouse delivery
     public void receiveDelivery(
             String centreId,
             String productCode,
@@ -105,7 +98,6 @@ public class SupermarketSystem {
         centre.addStock(productCode, quantity);
     }
 
-    // Submit replenishment request
     public void submitRequest(ReplenishmentRequest request) {
 
         if (request == null) {
@@ -122,12 +114,10 @@ public class SupermarketSystem {
         requestManager.addRequest(request);
     }
 
-    // Cancel pending request
     public boolean cancelRequest(String requestId) {
         return requestManager.cancelRequest(requestId);
     }
 
-    // Manually change request priority
     public void updateRequestPriority(
             String requestId,
             int priority) {
@@ -137,7 +127,6 @@ public class SupermarketSystem {
         );
     }
 
-    // BASIC ALLOCATION
     public int processRequests(String centreId) {
 
         DistributionCentre centre = requireCentre(centreId);
@@ -149,7 +138,6 @@ public class SupermarketSystem {
 
         int totalAllocated = 0;
 
-        // Process each pending request once
         for (int i = 0; i < initialPending; i++) {
 
             ReplenishmentRequest request =
@@ -182,7 +170,6 @@ public class SupermarketSystem {
 
             } catch (RuntimeException exception) {
 
-                // Keep an unfinished request in the system
                 if (request.isFulfilled()) {
                     requestManager.completeRequest(request);
                 } else {
@@ -196,24 +183,19 @@ public class SupermarketSystem {
         return totalAllocated;
     }
 
-    // ADVANCED WEIGHTED ALLOCATION
     public Map<String, Integer> processAdvancedRequests(
             String centreId) {
 
         DistributionCentre centre = requireCentre(centreId);
 
-        // Calculate current demand and deadline priorities
         requestManager.reprioritiseRequests();
 
-        // Capture requests without removing them
         List<ReplenishmentRequest> pendingRequests =
                 requestManager.getAllRequests();
 
-        // Capture the effective priorities
         Map<String, Integer> priorities =
                 requestManager.getPrioritySnapshot();
 
-        // Allocate stock using dynamic priority values
         Map<String, Integer> results =
                 advancedAllocation.allocateStock(
                         centre,
@@ -222,7 +204,6 @@ public class SupermarketSystem {
                         priorities
                 );
 
-        // Clean up completed requests and retain incomplete ones
         int pendingCount =
                 requestManager.getPendingRequestCount();
 
@@ -248,7 +229,6 @@ public class SupermarketSystem {
         return results;
     }
 
-    // Validate distribution centre
     private DistributionCentre requireCentre(
             String centreId) {
 
@@ -263,7 +243,6 @@ public class SupermarketSystem {
         return centre;
     }
 
-    // Record historical or simulated sale
     public void recordSale(
             String storeId,
             String productCode,
@@ -278,7 +257,6 @@ public class SupermarketSystem {
         );
     }
 
-    // Record one day of simulated sales
     public void recordDailySales(
             String storeId,
             String productCode,
@@ -293,7 +271,6 @@ public class SupermarketSystem {
         );
     }
 
-    // Validate store and product
     private void validateStoreAndProduct(
             String storeId,
             String productCode) {
@@ -311,7 +288,6 @@ public class SupermarketSystem {
         }
     }
 
-    // Forecast future daily demand
     public double forecastDemand(
             String storeId,
             String productCode,
@@ -328,22 +304,18 @@ public class SupermarketSystem {
         );
     }
 
-    // Access demand analysis
     public DemandAnalysisService getDemandAnalysis() {
         return demandAnalysis;
     }
 
-    // Access forecasting
     public DemandForecastService getDemandForecast() {
         return demandForecast;
     }
 
-    // Current number of pending requests
     public int getPendingRequests() {
         return requestManager.getPendingRequestCount();
     }
 
-    // System statistics
     public int getTotalProducts() {
         return products.size();
     }

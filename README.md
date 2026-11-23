@@ -1,4 +1,3 @@
-
 # Supermarket Distribution and Stock Optimisation System
 
 ## Project Overview

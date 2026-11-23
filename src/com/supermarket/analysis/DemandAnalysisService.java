@@ -10,13 +10,10 @@ import java.util.Map;
 
 public class DemandAnalysisService {
 
-    // Product code -> total units sold
     private final Map<String, Integer> productSales;
 
-    // Store ID -> total units sold
     private final Map<String, Integer> storeSales;
 
-    // Store ID -> (Product code -> units sold)
     private final Map<String, Map<String, Integer>> salesByStore;
 
     public DemandAnalysisService() {
@@ -25,7 +22,6 @@ public class DemandAnalysisService {
         salesByStore = new HashMap<>();
     }
 
-    // Record historical or simulated sales
     public void recordSale(
             String storeId,
             String productCode,
@@ -59,17 +55,14 @@ public class DemandAnalysisService {
         );
     }
 
-    // Get total demand for one product
     public int getProductDemand(String productCode) {
         return productSales.getOrDefault(productCode, 0);
     }
 
-    // Get total demand for one store
     public int getStoreDemand(String storeId) {
         return storeSales.getOrDefault(storeId, 0);
     }
 
-    // Find demand for a product at a specific store
     public int getStoreProductDemand(
             String storeId, String productCode) {
 
@@ -83,7 +76,6 @@ public class DemandAnalysisService {
         return sales.getOrDefault(productCode, 0);
     }
 
-    // Rank products by demand using Merge Sort
     public List<String> rankProductsByDemand() {
 
         List<String> products =
@@ -92,7 +84,6 @@ public class DemandAnalysisService {
         return mergeSort(products, productSales);
     }
 
-    // Rank stores by demand using Merge Sort
     public List<String> rankStoresByDemand() {
 
         List<String> stores =
@@ -101,7 +92,6 @@ public class DemandAnalysisService {
         return mergeSort(stores, storeSales);
     }
 
-    // Find products selling above a threshold
     public List<String> findHighDemandProducts(int threshold) {
 
         List<String> result = new ArrayList<>();
@@ -115,7 +105,6 @@ public class DemandAnalysisService {
         return mergeSort(result, productSales);
     }
 
-    // Find recorded products selling below a threshold
     public List<String> findLowDemandProducts(int threshold) {
 
         List<String> result = new ArrayList<>();
@@ -129,7 +118,6 @@ public class DemandAnalysisService {
         return mergeSort(result, productSales);
     }
 
-    // Identify low-stock products at a store
     public List<String> findStockShortages(
             Store store, int threshold) {
 
@@ -154,7 +142,6 @@ public class DemandAnalysisService {
         return shortages;
     }
 
-    // Custom Merge Sort algorithm
     private List<String> mergeSort(
             List<String> items,
             Map<String, Integer> values) {
@@ -178,7 +165,6 @@ public class DemandAnalysisService {
         return merge(left, right, values);
     }
 
-    // Merge two sorted lists
     private List<String> merge(
             List<String> left,
             List<String> right,

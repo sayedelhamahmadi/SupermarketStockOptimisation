@@ -4,7 +4,6 @@ package com.supermarket.service;
 import com.supermarket.model.DistributionCentre;
 import com.supermarket.model.ReplenishmentRequest;
 import com.supermarket.model.Store;
-
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -15,7 +14,6 @@ import java.util.Map;
 
 public class AdvancedAllocationService {
 
-    // Original method - keeps existing code compatible
     public Map<String, Integer> allocateStock(
             DistributionCentre centre,
             Map<String, Store> stores,
@@ -29,7 +27,6 @@ public class AdvancedAllocationService {
         );
     }
 
-    // Advanced allocation with dynamic priorities
     public Map<String, Integer> allocateStock(
             DistributionCentre centre,
             Map<String, Store> stores,
@@ -47,7 +44,6 @@ public class AdvancedAllocationService {
         Map<String, List<ReplenishmentRequest>> groups =
                 new HashMap<>();
 
-        // Validate and group requests by product
         for (ReplenishmentRequest request : requests) {
 
             if (request == null) {
@@ -76,7 +72,6 @@ public class AdvancedAllocationService {
 
         LocalDateTime evaluationTime = LocalDateTime.now();
 
-        // Process each product independently
         for (Map.Entry<String, List<ReplenishmentRequest>> entry
                 : groups.entrySet()) {
 
@@ -94,7 +89,6 @@ public class AdvancedAllocationService {
 
             double totalScore = 0;
 
-            // Calculate scores using dynamic priorities
             for (ReplenishmentRequest request : group) {
 
                 int priority = effectivePriorities.getOrDefault(
@@ -112,7 +106,6 @@ public class AdvancedAllocationService {
                 totalScore += score;
             }
 
-            // Higher-scoring requests are processed first
             group.sort(
                     Comparator.comparingDouble(
                                     (ReplenishmentRequest request) ->
@@ -126,7 +119,6 @@ public class AdvancedAllocationService {
                             )
             );
 
-            // First pass - proportional weighted allocation
             for (ReplenishmentRequest request : group) {
 
                 int available = centre.getStock(productCode);
@@ -161,7 +153,6 @@ public class AdvancedAllocationService {
                 }
             }
 
-            // Second pass - use any remaining stock
             for (ReplenishmentRequest request : group) {
 
                 int available = centre.getStock(productCode);
@@ -190,7 +181,6 @@ public class AdvancedAllocationService {
         return results;
     }
 
-    // Calculate urgency using multiple factors
     private double calculateScore(
             ReplenishmentRequest request,
             int effectivePriority,
@@ -230,7 +220,6 @@ public class AdvancedAllocationService {
                 + deadlineScore;
     }
 
-    // Transfer stock from warehouse to store
     private void allocate(
             DistributionCentre centre,
             Store store,

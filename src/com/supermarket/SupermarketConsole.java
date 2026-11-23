@@ -1,4 +1,3 @@
-
 package com.supermarket;
 
 import com.supermarket.model.DistributionCentre;
@@ -6,7 +5,6 @@ import com.supermarket.model.Product;
 import com.supermarket.model.ReplenishmentRequest;
 import com.supermarket.model.Store;
 import com.supermarket.service.SupermarketSystem;
-
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Scanner;

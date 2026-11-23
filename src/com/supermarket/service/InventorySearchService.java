@@ -4,7 +4,6 @@ package com.supermarket.service;
 import com.supermarket.model.Product;
 import com.supermarket.model.Store;
 import com.supermarket.model.DistributionCentre;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,7 +21,6 @@ public class InventorySearchService {
         centres = new HashMap<>();
     }
 
-    // Add or update a product
     public void addProduct(Product product) {
         if (product == null) {
             throw new IllegalArgumentException("Product cannot be null");
@@ -30,17 +28,14 @@ public class InventorySearchService {
         products.put(product.getProductCode(), product);
     }
 
-    // Remove a product
     public boolean removeProduct(String productCode) {
         return products.remove(productCode) != null;
     }
 
-    // Search by unique product code
     public Product findProduct(String productCode) {
         return products.get(productCode);
     }
 
-    // Search products by category
     public List<Product> findByCategory(String category) {
         List<Product> result = new ArrayList<>();
 
@@ -53,7 +48,6 @@ public class InventorySearchService {
         return result;
     }
 
-    // Register a store
     public void addStore(Store store) {
         if (store == null) {
             throw new IllegalArgumentException("Store cannot be null");
@@ -61,12 +55,10 @@ public class InventorySearchService {
         stores.put(store.getStoreId(), store);
     }
 
-    // Remove a store
     public boolean removeStore(String storeId) {
         return stores.remove(storeId) != null;
     }
 
-    // Register a distribution centre
     public void addCentre(DistributionCentre centre) {
         if (centre == null) {
             throw new IllegalArgumentException("Centre cannot be null");
@@ -74,7 +66,6 @@ public class InventorySearchService {
         centres.put(centre.getCentreId(), centre);
     }
 
-    // Find products below a stock threshold
     public List<String> findLowStockProducts(
             String storeId, int threshold) {
 
@@ -101,7 +92,6 @@ public class InventorySearchService {
         return result;
     }
 
-    // Find warehouses holding a specific product
     public List<DistributionCentre> findCentresWithProduct(
             String productCode) {
 
@@ -116,7 +106,6 @@ public class InventorySearchService {
         return result;
     }
 
-    // Find stores with largest outstanding stock needs
     public List<Store> findStoresWithLowStock(
             String productCode, int threshold) {
 
