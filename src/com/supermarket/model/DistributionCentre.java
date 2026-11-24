@@ -3,6 +3,10 @@ package com.supermarket.model;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Represents a distribution centre and its stock quantities by product code.
+ * Inventory changes are validated before stock is added or removed.
+ */
 public class DistributionCentre {
 
     private String centreId;

@@ -8,6 +8,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Records product and store sales and ranks demand using a custom merge sort.
+ * Sales data is kept in memory for analysis of the simulated workload.
+ */
 public class DemandAnalysisService {
 
     private final Map<String, Integer> productSales;
