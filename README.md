@@ -229,11 +229,11 @@ The updated methodology uses:
 
 | Requests | Basic Average (ms) | Advanced Average (ms) |
 |---:|---:|---:|
-| 100 | 0.697 | 0.384 |
-| 500 | 1.952 | 1.481 |
-| 1,000 | 2.875 | 2.247 |
-| 5,000 | 11.203 | 4.646 |
-| 10,000 | 22.868 | 10.257 |
+| 100 | 0.632 | 0.357 |
+| 500 | 1.910 | 1.383 |
+| 1,000 | 2.672| 2.143|
+| 5,000 | 13.060 | 5.524 |
+| 10,000 | 24.335 | 11.803 |
 
 These results were recorded on the development computer and represent one benchmark execution containing five measured runs per request size.
 
