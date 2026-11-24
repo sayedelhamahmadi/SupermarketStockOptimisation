@@ -301,3 +301,67 @@ Possible extensions include:
 This project demonstrates the application of data structures, algorithms, complexity analysis, performance benchmarking and software testing to supermarket inventory distribution.
 
 Developed for CPS5001 Algorithms and Data Structures.
+
+## 16. Project Verification and Submission
+
+### Verification Procedure
+
+Before preparing a release, the following checks should be completed:
+
+1. Open the project using IntelliJ IDEA with JDK 21.
+2. Run `Main.java` to demonstrate basic and advanced stock allocation.
+3. Run `AllocationTests.java` to check the allocation algorithms,
+   stock conservation, priority management and demand analysis.
+4. Run `PerformanceBenchmark.java` to compare the two allocation
+   workflows at different request volumes.
+5. Review the console output for exceptions or failed tests.
+6. Confirm that the Git working tree contains no unintended changes.
+
+### Test Evidence
+
+The latest recorded test run completed with:
+
+- Total tests: 12
+- Passed: 12
+- Failed: 0
+- Exit code: 0
+
+The test suite uses a standalone Java runner rather than JUnit.
+
+### Performance Evaluation
+
+Performance measurements use three warm-up runs and five
+measured runs for each workload size.
+
+The benchmark reports average execution time and standard
+deviation. Timing results may vary depending on JVM
+optimisation and system load.
+
+The basic and advanced workflows are not identical, so their
+execution times should not be interpreted as a universally
+fair comparison of algorithm speed.
+
+### Version Control
+
+Git is used to track implementation changes and maintain
+project history.
+
+Documentation updates are developed on separate branches
+and submitted through GitHub pull requests.
+
+Each pull request records the proposed changes before
+they are merged into the main development branch.
+
+### Source Code Packaging
+
+The source submission should include:
+
+- Java source files in `src/`
+- `README.md`
+- `.gitignore`
+- Git history where required by the assessment
+
+Generated compiled files and IntelliJ build output should
+not be included in the submission archive.
+
+The technical report is submitted separately as a PDF.
