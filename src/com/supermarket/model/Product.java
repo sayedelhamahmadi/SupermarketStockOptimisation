@@ -1,5 +1,9 @@
 package com.supermarket.model;
 
+/**
+ * Represents a supermarket product identified by its product code.
+ * The model stores the descriptive information used for inventory lookup.
+ */
 public class Product {
 
     private String productCode;

@@ -9,6 +9,10 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Scanner;
 
+/**
+ * Provides the text-based user interface for managing the supermarket system.
+ * Domain rules and allocation behaviour are handled by service classes.
+ */
 public class SupermarketConsole {
 
     private static final SupermarketSystem system =

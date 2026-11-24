@@ -12,6 +12,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Runs a fixed demonstration of the basic and advanced stock allocation
+ * strategies using the same initial replenishment scenario.
+ */
 public class Main {
 
     public static void main(String[] args) {

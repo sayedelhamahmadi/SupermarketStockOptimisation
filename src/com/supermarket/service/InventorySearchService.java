@@ -9,6 +9,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Provides inventory and product search operations for supermarket records.
+ * Filtered searches may scan collections, unlike direct hash-map lookups.
+ */
 public class InventorySearchService {
 
     private final Map<String, Product> products;

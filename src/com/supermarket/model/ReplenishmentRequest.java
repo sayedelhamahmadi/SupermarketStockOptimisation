@@ -2,6 +2,10 @@ package com.supermarket.model;
 
 import java.time.LocalDateTime;
 
+/**
+ * Stores a supermarket replenishment request, including priority, deadline,
+ * requested quantity and the quantity still awaiting allocation.
+ */
 public class ReplenishmentRequest {
 
     private String requestId;
